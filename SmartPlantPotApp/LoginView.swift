@@ -1,4 +1,6 @@
 import SwiftUI
+import GoogleSignIn
+import GoogleSignInSwift
 
 struct LoginView: View {
     @State private var email: String = ""
@@ -25,6 +27,16 @@ struct LoginView: View {
                 Button("Sign Up") {
                     // TODO: Implement sign up flow
                 }.padding()
+
+                GoogleSignInButton {
+                    if let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+                       let root = scene.windows.first?.rootViewController {
+                        GoogleSignInHelper.shared.signIn(presenting: root) { success in
+                            isLoggedIn = success
+                        }
+                    }
+                }
+                .padding()
             }.padding()
         }
     }
