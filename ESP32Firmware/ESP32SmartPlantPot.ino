@@ -7,6 +7,8 @@
 #include <SPI.h>
 #include <NTPClient.h>
 #include <WiFiUdp.h>
+#include <WebServer.h>
+#include <Preferences.h>
 
 // Pin configuration
 #define SOIL_PIN 34
@@ -15,9 +17,11 @@
 #define TFT_DC 16
 #define TFT_RST 17
 
-// WiFi credentials
-const char* ssid = "YOUR_SSID";
-const char* password = "YOUR_PASSWORD";
+Preferences prefs;
+WebServer server(80);
+bool provisioningMode = false;
+String wifiSsid;
+String wifiPass;
 
 // AWS IoT configuration
 const char* awsEndpoint = "your-endpoint-ats.iot.your-region.amazonaws.com";
@@ -45,6 +49,50 @@ NTPClient timeClient(ntpUDP, "pool.ntp.org", 0, 60000); // Update every 60s
 
 uint8_t lastSavedHour = 255; // Track last hour we stored data
 
+void handleProvision() {
+  if (server.hasArg("ssid") && server.hasArg("pass")) {
+    wifiSsid = server.arg("ssid");
+    wifiPass = server.arg("pass");
+    prefs.putString("ssid", wifiSsid);
+    prefs.putString("pass", wifiPass);
+    server.send(200, "text/plain", "OK");
+    delay(1000);
+    ESP.restart();
+  } else {
+    server.send(400, "text/plain", "missing params");
+  }
+}
+
+void startProvisioningAP() {
+  provisioningMode = true;
+  WiFi.mode(WIFI_AP);
+  WiFi.softAP("SmartPotSetup");
+  server.on("/wifi", HTTP_POST, handleProvision);
+  server.begin();
+  Serial.println("Provisioning AP started");
+}
+
+void setupWiFi() {
+  prefs.begin("wifi", false);
+  wifiSsid = prefs.getString("ssid", "");
+  wifiPass = prefs.getString("pass", "");
+  if (wifiSsid.length() == 0) {
+    startProvisioningAP();
+    return;
+  }
+
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(wifiSsid.c_str(), wifiPass.c_str());
+  int tries = 0;
+  while (WiFi.status() != WL_CONNECTED && tries < 20) {
+    delay(500);
+    tries++;
+  }
+  if (WiFi.status() != WL_CONNECTED) {
+    startProvisioningAP();
+  }
+}
+
 void setup() {
   Serial.begin(115200);
   Wire.begin();
@@ -58,15 +106,15 @@ void setup() {
     Serial.println("Failed to find AHT10 sensor");
   }
 
-  WiFi.begin(ssid, password);
-  while (WiFi.status() != WL_CONNECTED) {
+  setupWiFi();
+  while (!provisioningMode && WiFi.status() != WL_CONNECTED) {
     delay(500);
   }
 
-  // Connect to AWS IoT using certificate authentication
-  if (awsIot.begin(awsEndpoint, awsClientId, awsCert, awsPrivateKey) == 0) {
+  // Connect to AWS IoT only when connected to Wi-Fi
+  if (!provisioningMode && awsIot.begin(awsEndpoint, awsClientId, awsCert, awsPrivateKey) == 0) {
     Serial.println("Connected to AWS IoT");
-  } else {
+  } else if (!provisioningMode) {
     Serial.println("AWS IoT connection failed");
   }
 
@@ -74,6 +122,11 @@ void setup() {
 }
 
 void loop() {
+  if (provisioningMode) {
+    server.handleClient();
+    delay(100);
+    return;
+  }
   timeClient.update();
 
   sensors_event_t humidity, temp;
