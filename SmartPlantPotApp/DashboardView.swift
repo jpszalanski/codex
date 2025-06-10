@@ -2,6 +2,7 @@ import SwiftUI
 
 struct DashboardView: View {
     @State private var plants: [Plant] = []
+    @State private var devices: [Device] = []
 
     var body: some View {
         NavigationView {
@@ -14,6 +15,11 @@ struct DashboardView: View {
             }
             .navigationTitle("My Plants")
             .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    NavigationLink(destination: DeviceManagementView(devices: $devices)) {
+                        Image(systemName: "bolt.horizontal" )
+                    }
+                }
                 ToolbarItem(placement: .navigationBarTrailing) {
                     NavigationLink(destination: AddPlantView(plants: $plants)) {
                         Image(systemName: "plus")
