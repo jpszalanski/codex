@@ -22,6 +22,6 @@ Sensor readings are refreshed every second on the display. Data will be persiste
 
 ## Hardware wiring
 
-As ligações de todos os sensores e do display estão documentadas em
+As ligacoes de todos os sensores e do display estao documentadas em
 [`HardwareConnections.md`](HardwareConnections.md), que inclui um diagrama
 em formato Mermaid exibindo os pinos utilizados.
