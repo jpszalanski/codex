@@ -9,6 +9,7 @@ allows:
 - Managing locations for plants (rooms, office, etc.).
 - Viewing plant details with current sensor values compared to ideal ranges.
 - Linking hardware devices to your user account.
+- Provisioning ESP32 devices with Wi-Fi credentials directly from the app.
 
 The app includes placeholder areas where integration with the ChatGPT API and
 sensor devices should be implemented.
