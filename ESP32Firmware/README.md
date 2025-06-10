@@ -19,3 +19,9 @@ This firmware reads environmental values from several sensors connected to an ES
 3. Build and flash the sketch to an ESP32 using the Arduino IDE or PlatformIO.
 
 Sensor readings are refreshed every second on the display. Data will be persisted to the remote endpoint once per hour.
+
+## Hardware wiring
+
+As ligações de todos os sensores e do display estão documentadas em
+[`HardwareConnections.md`](HardwareConnections.md), que inclui um diagrama
+em formato Mermaid exibindo os pinos utilizados.
