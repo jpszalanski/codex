@@ -5,12 +5,12 @@ Este documento descreve como conectar os sensores e o display ao ESP32 conforme 
 ## Sensor de umidade de solo capacitivo
 - **VCC** -> 3.3&nbsp;V
 - **GND** -> GND
-- **AOUT** -> GPIO 34 (leitura analógica)
+ - **AOUT** -> GPIO 34 (leitura analogica)
 
 ## Sensor de luminosidade (LDR + resistor)
 - LDR ligado a 3.3&nbsp;V
 - Resistor (~10kΩ) para GND
-- Ponto comum (entre LDR e resistor) -> GPIO 35 (leitura analógica)
+ - Ponto comum (entre LDR e resistor) -> GPIO 35 (leitura analogica)
 
 ## Sensor AHT10 (temperatura e umidade)
 - **VCC** -> 3.3&nbsp;V
@@ -28,9 +28,9 @@ Este documento descreve como conectar os sensores e o display ao ESP32 conforme 
 - **SCLK** -> GPIO 18 (SPI)
 - **MISO** -> GPIO 19 (opcional)
 
-> **Nota:** os pinos MOSI, SCLK e, quando necessário, MISO utilizam o barramento SPI padrão do ESP32.
+> **Nota:** os pinos MOSI, SCLK e, quando necessario, MISO utilizam o barramento SPI padrao do ESP32.
 
-## Diagrama de ligações
+## Diagrama de ligacoes
 
 ```mermaid
 graph LR
