@@ -3,6 +3,7 @@ import GoogleSignIn
 import GoogleSignInSwift
 
 struct LoginView: View {
+    @EnvironmentObject var session: UserSession
     @State private var email: String = ""
     @State private var password: String = ""
     @State private var isLoggedIn: Bool = false
@@ -10,6 +11,7 @@ struct LoginView: View {
     var body: some View {
         if isLoggedIn {
             DashboardView()
+                .environmentObject(session)
         } else {
             VStack {
                 Text("Smart Plant Pot").font(.largeTitle)
@@ -21,6 +23,7 @@ struct LoginView: View {
                     .padding()
                 Button("Login") {
                     // TODO: Implement real authentication
+                    session.user.email = email
                     isLoggedIn = true
                 }
                 .padding()
@@ -45,5 +48,6 @@ struct LoginView: View {
 struct LoginView_Previews: PreviewProvider {
     static var previews: some View {
         LoginView()
+            .environmentObject(UserSession(user: User(email: "", password: "", locations: [], devices: [])))
     }
 }
