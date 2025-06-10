@@ -1,5 +1,5 @@
 #include <WiFi.h>
-#include <HTTPClient.h>
+#include <AWS_IOT.h>
 #include <Wire.h>
 #include <Adafruit_AHTX0.h>
 #include <Adafruit_GFX.h>
@@ -19,12 +19,28 @@
 const char* ssid = "YOUR_SSID";
 const char* password = "YOUR_PASSWORD";
 
-// Endpoint for posting sensor data to DynamoDB
-const char* dynamoEndpoint = "https://example.execute-api.region.amazonaws.com/prod/log";
+// AWS IoT configuration
+const char* awsEndpoint = "your-endpoint-ats.iot.your-region.amazonaws.com";
+const char* awsClientId = "SmartPlantPot";
+const char* awsTopic = "smartpot/sensors";
+
+// Device certificate and key used for AWS IoT authentication
+static const char awsCert[] PROGMEM = R"CERT(
+-----BEGIN CERTIFICATE-----
+YOUR_CERTIFICATE_HERE
+-----END CERTIFICATE-----
+)CERT";
+
+static const char awsPrivateKey[] PROGMEM = R"KEY(
+-----BEGIN RSA PRIVATE KEY-----
+YOUR_PRIVATE_KEY_HERE
+-----END RSA PRIVATE KEY-----
+)KEY";
 
 Adafruit_ST7735 tft = Adafruit_ST7735(TFT_CS, TFT_DC, TFT_RST);
 Adafruit_AHTX0 aht;
 WiFiUDP ntpUDP;
+AWS_IOT awsIot;
 NTPClient timeClient(ntpUDP, "pool.ntp.org", 0, 60000); // Update every 60s
 
 uint8_t lastSavedHour = 255; // Track last hour we stored data
@@ -47,6 +63,13 @@ void setup() {
     delay(500);
   }
 
+  // Connect to AWS IoT using certificate authentication
+  if (awsIot.begin(awsEndpoint, awsClientId, awsCert, awsPrivateKey) == 0) {
+    Serial.println("Connected to AWS IoT");
+  } else {
+    Serial.println("AWS IoT connection failed");
+  }
+
   timeClient.begin();
 }
 
@@ -66,7 +89,7 @@ void loop() {
 
   if (timeClient.getMinutes() == 1 && timeClient.getHours() != lastSavedHour) {
     lastSavedHour = timeClient.getHours();
-    sendToDynamoDB(temperature, humidityPercent, soilRaw, lightRaw);
+    publishToAWSIoT(temperature, humidityPercent, soilRaw, lightRaw);
   }
 
   delay(1000);
@@ -90,14 +113,10 @@ void displayValues(float tempC, float humidity, int soil, int light) {
   tft.println(light);
 }
 
-void sendToDynamoDB(float tempC, float humidity, int soil, int light) {
+void publishToAWSIoT(float tempC, float humidity, int soil, int light) {
   if (WiFi.status() != WL_CONNECTED) {
     return;
   }
-
-  HTTPClient http;
-  http.begin(dynamoEndpoint);
-  http.addHeader("Content-Type", "application/json");
 
   String payload = "{";
   payload += "\"temperature\":" + String(tempC, 2) + ",";
@@ -106,6 +125,5 @@ void sendToDynamoDB(float tempC, float humidity, int soil, int light) {
   payload += "\"light\":" + String(light);
   payload += "}";
 
-  http.POST(payload);
-  http.end();
+  awsIot.publish(awsTopic, payload);
 }
