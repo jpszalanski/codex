@@ -8,9 +8,13 @@ allows:
 - Listing and adding plants with optional photo-based identification (stubbed).
 - Managing locations for plants (rooms, office, etc.).
 - Viewing plant details with current sensor values compared to ideal ranges.
+- Linking hardware devices to your user account.
 
 The app includes placeholder areas where integration with the ChatGPT API and
 sensor devices should be implemented.
+
+You can link a hardware sensor device to your account from the dashboard by
+selecting the **Devices** button and entering the device identifier.
 
 ## Google Sign-In setup
 
